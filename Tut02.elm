@@ -10,17 +10,31 @@ import WebGL exposing (..)
 
 
 type alias Model =
-    Int
+    { perspective : Mat4
+    , triangle : Object3D Vertex
+    , square : Object3D Vertex
+    }
 
 
 type Msg
     = NoOp
 
 
+type alias Object3D a =
+    { mesh : Drawable a
+    , modelView : Mat4
+    }
+
+
 type alias Vertex =
     { position : Vec3
     , color : Vec4
     }
+
+
+makeObject3D : Drawable a -> Vec3 -> Object3D a
+makeObject3D mesh position =
+    { mesh = mesh, modelView = makeTranslate position }
 
 
 triangle : Drawable Vertex
@@ -55,7 +69,12 @@ main =
 
 init : ( Model, Cmd Msg )
 init =
-    ( 1, Cmd.none )
+    ( { perspective = perspective
+      , triangle = makeObject3D triangle <| vec3 -1.5 0.0 -7.0
+      , square = makeObject3D square <| vec3 1.5 0.0 -7.0
+      }
+    , Cmd.none
+    )
 
 
 view : Model -> Html Msg
@@ -64,15 +83,15 @@ view model =
         [ Attr.width canvasWidth, Attr.height canvasHeight ]
         [ render vertexShader
             fragmentShader
-            triangle
-            { perspective = perspective
-            , modelView = go (vec3 -1.5 0.0 -7.0) M4.identity
+            model.triangle.mesh
+            { perspective = model.perspective
+            , modelView = model.triangle.modelView
             }
         , render vertexShader
             fragmentShader
-            square
-            { perspective = perspective
-            , modelView = go (vec3 1.5 0.0 -7.0) M4.identity
+            model.square.mesh
+            { perspective = model.perspective
+            , modelView = model.square.modelView
             }
         ]
 
@@ -100,11 +119,6 @@ canvasWidth =
 perspective : Mat4
 perspective =
     makePerspective 45 (toFloat canvasWidth / toFloat canvasHeight) 0.1 100.0
-
-
-go : Vec3 -> Mat4 -> Mat4
-go to current =
-    mul current <| makeTranslate to
 
 
 
