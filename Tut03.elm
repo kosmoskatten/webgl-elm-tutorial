@@ -73,7 +73,8 @@ square =
 
 calcRotation : Time -> Float
 calcRotation dt =
-    dt * (2 * pi)
+    -- 180 degrees rotation per second.
+    dt * pi
 
 
 main : Program Never Model Msg
